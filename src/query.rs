@@ -63,7 +63,7 @@ impl Query {
                 let client = reqwest::Client::new();
                 let response = client
                     .post(&url)
-                    .form(&self.params.unwrap())
+                    .json(&self.params.unwrap())
                     .headers(headers)
                     .send();
                 response
