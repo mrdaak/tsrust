@@ -275,6 +275,7 @@ pub fn get_balance(currency: String) -> reqwest::Response {
 
 pub fn get_balances() -> reqwest::Response {
     Query::new("getbalances".to_string(), Api::Private)
+        .params(Params::new())
         .run()
         .unwrap()
 }
