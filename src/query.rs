@@ -3,7 +3,7 @@ use base64::{decode, encode};
 use hmac::{Hmac, Mac};
 use rand;
 use reqwest;
-use reqwest::header::{Authorization, ContentType, Headers, UserAgent};
+use reqwest::header::{qitem, AcceptEncoding, Authorization, Encoding, Headers, UserAgent};
 use serde_json::to_string;
 use sha2::Sha512;
 use strum::AsStaticRef;
@@ -165,10 +165,13 @@ impl Params {
     }
 }
 
+header! { (CT, "Content-Type") => [String] }
+
 fn generate_header(url: &str, params: &Params) -> Headers {
     let url_encoded: String = byte_serialize(&url.as_bytes()).collect();
     let post_params = &to_string(&params).unwrap();
-    let nonce: f64 = rand::random();
+    let randn: f64 = rand::random();
+    let nonce = &randn.to_string()[2..];
     let signature: String = format!(
         "{}POST{}{}{}",
         &API_PUBLIC_KEY,
@@ -182,17 +185,20 @@ fn generate_header(url: &str, params: &Params) -> Headers {
     mac.input(&signature.as_bytes());
     let hmac_sign = encode(&mac.result().code());
 
-    let header: String = format!(
-        "Basic {}:{}:{}",
-        API_PUBLIC_KEY,
-        hmac_sign,
-        &nonce.to_string()[2..]
-    );
+    let header: String = format!("Basic {}:{}:{}", API_PUBLIC_KEY, hmac_sign, &nonce);
 
     let mut headers = Headers::new();
-    headers.set(ContentType::json());
+    headers.set(CT("application/json; charset=utf-8".to_string()));
     headers.set(Authorization(header));
-    headers.set(UserAgent::new("Mozilla/4.0"));
+    headers.set(UserAgent::new(
+        "Mozilla/4.0 (compatible; TradeSatoshi API Rust client)",
+    ));
+    headers.set(AcceptEncoding(vec![
+        qitem(Encoding::Identity),
+        qitem(Encoding::Chunked),
+        qitem(Encoding::Gzip),
+        qitem(Encoding::Deflate),
+    ]));
     headers
 }
 
