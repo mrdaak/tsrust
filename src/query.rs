@@ -262,32 +262,81 @@ pub fn get_order_book(
         .unwrap()
 }
 
+#[derive(Deserialize, Debug)]
+pub struct BalanceResponse {
+    success: bool,
+    // message: String,
+    result: Vec<Balance>,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Balance {
+    pub currency: String,
+    #[serde(rename = "currencyLong")]
+    pub currency_long: String,
+    pub total: f64,
+    pub available: f64,
+    #[serde(rename = "pendingWithdraw")]
+    pub pending: f64,
+    // pub address: String,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct OrderResponse {
+    success: bool,
+    // message: String,
+    result: Vec<Order>,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Order {
+    pub id: bool,
+    pub market: String,
+    #[serde(rename = "type")]
+    pub Type: String,
+    pub amount: f64,
+    pub rate: f64,
+    pub remaining: f64,
+    pub total: f64,
+    pub status: String,
+    pub timestamp: String,
+    #[serde(rename = "isApi")]
+    pub is_api: bool,
+}
+
 ///////////////////////////
 // Private API Functions //
 ///////////////////////////
 
-pub fn get_balance(currency: String) -> reqwest::Response {
-    Query::new("getbalance".to_string(), Api::Private)
+pub fn get_balance(currency: String) -> Balance {
+    let mut resp = Query::new("getbalance".to_string(), Api::Private)
         .params(Params::new().currency(currency))
         .run()
-        .unwrap()
+        .unwrap();
+
+    let balance: Balance = resp.json().unwrap();
+    balance
 }
 
-pub fn get_balances() -> reqwest::Response {
-    Query::new("getbalances".to_string(), Api::Private)
+pub fn get_balances() -> BalanceResponse {
+    let mut resp = Query::new("getbalances".to_string(), Api::Private)
         .params(Params::new())
         .run()
-        .unwrap()
+        .unwrap();
+    let json: BalanceResponse = resp.json().unwrap();
+    json
 }
 
-pub fn get_order(orderid: u64) -> reqwest::Response {
-    Query::new("getorder".to_string(), Api::Private)
+pub fn get_order(orderid: u64) -> Order {
+    let mut resp = Query::new("getorder".to_string(), Api::Private)
         .params(Params::new().orderid(orderid))
         .run()
-        .unwrap()
+        .unwrap();
+    let order: Order = resp.json().unwrap();
+    order
 }
 
-pub fn get_orders(market: Option<String>, count: Option<u8>) -> reqwest::Response {
+pub fn get_orders(market: Option<String>, count: Option<u8>) -> OrderResponse {
     let market: String = match market {
         Some(val) => val,
         None => "all".to_string(),
@@ -296,10 +345,12 @@ pub fn get_orders(market: Option<String>, count: Option<u8>) -> reqwest::Respons
         Some(val) => val,
         None => 20,
     };
-    Query::new("getorders".to_string(), Api::Private)
+    let mut resp = Query::new("getorders".to_string(), Api::Private)
         .params(Params::new().market(market).count(count))
         .run()
-        .unwrap()
+        .unwrap();
+    let json: OrderResponse = resp.json().unwrap();
+    json
 }
 
 pub fn submit_order(market: String, typeo: String, amount: f64, price: f64) -> reqwest::Response {

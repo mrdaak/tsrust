@@ -25,46 +25,46 @@ mod tests {
     // Public API tests //
     //////////////////////
 
-    #[test]
-    fn test_get_currencies() {
-        assert_eq!(query::get_currencies().status(), reqwest::StatusCode::Ok);
-    }
-    #[test]
-    fn test_get_ticker() {
-        assert_eq!(
-            query::get_ticker("LTC_BTC".to_string()).status(),
-            reqwest::StatusCode::Ok
-        );
-    }
-    #[test]
-    fn test_get_market_history() {
-        assert_eq!(
-            query::get_market_history("LTC_BTC".to_string(), None).status(),
-            reqwest::StatusCode::Ok
-        );
-    }
-    #[test]
-    fn test_get_market_summary() {
-        assert_eq!(
-            query::get_market_summary("LTC_BTC".to_string()).status(),
-            reqwest::StatusCode::Ok
-        );
-    }
-    #[test]
-    fn test_get_market_summaries() {
-        assert_eq!(
-            query::get_market_summaries().status(),
-            reqwest::StatusCode::Ok
-        );
-    }
-    #[test]
-    fn test_get_order_book() {
-        assert_eq!(
-            query::get_order_book("LTC_BTC".to_string(), Some("both".to_string()), Some(10))
-                .status(),
-            reqwest::StatusCode::Ok
-        );
-    }
+    // #[test]
+    // fn test_get_currencies() {
+    //     assert_eq!(query::get_currencies().status(), reqwest::StatusCode::Ok);
+    // }
+    // #[test]
+    // fn test_get_ticker() {
+    //     assert_eq!(
+    //         query::get_ticker("LTC_BTC".to_string()).status(),
+    //         reqwest::StatusCode::Ok
+    //     );
+    // }
+    // #[test]
+    // fn test_get_market_history() {
+    //     assert_eq!(
+    //         query::get_market_history("LTC_BTC".to_string(), None).status(),
+    //         reqwest::StatusCode::Ok
+    //     );
+    // }
+    // #[test]
+    // fn test_get_market_summary() {
+    //     assert_eq!(
+    //         query::get_market_summary("LTC_BTC".to_string()).status(),
+    //         reqwest::StatusCode::Ok
+    //     );
+    // }
+    // #[test]
+    // fn test_get_market_summaries() {
+    //     assert_eq!(
+    //         query::get_market_summaries().status(),
+    //         reqwest::StatusCode::Ok
+    //     );
+    // }
+    // #[test]
+    // fn test_get_order_book() {
+    //     assert_eq!(
+    //         query::get_order_book("LTC_BTC".to_string(), Some("both".to_string()), Some(10))
+    //             .status(),
+    //         reqwest::StatusCode::Ok
+    //     );
+    // }
 
     ///////////////////////
     // Private API tests //
@@ -72,13 +72,25 @@ mod tests {
 
     // #[test]
     // fn test_get_balance() {
-    //     let text: String = query::get_balance("PPC".to_string()).text().unwrap();
-    //     println!("{}", text);
-    //     assert_eq!(
-    //         query::get_balance("BTC".to_string()).status(),
-    //         reqwest::StatusCode::Ok
-    //     );
+    //     let balance: query::Balance = query::get_balance("PPC".to_string());
+    //     println!("{:?}", balance);
+    //     // assert_eq!(
+    //     //     query::get_balance("BTC".to_string()).status(),
+    //     //     reqwest::StatusCode::Ok
+    //     // );
     // }
+
+    // #[test]
+    // fn test_get_balances() {
+    //     let response: query::Response = query::get_balances();
+    //     println!("{:?}", response);
+    // }
+
+    #[test]
+    fn test_get_orders() {
+        let response: query::OrderResponse = query::get_orders(None, None);
+        println!("{:?}", response);
+    }
 
     // #[test]
     // fn test_generate_address() {
