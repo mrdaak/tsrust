@@ -10,13 +10,18 @@ use strum::AsStaticRef;
 use url::form_urlencoded::byte_serialize;
 
 // built-in
+use std;
 use std::str;
 
+use error::{Error, ErrorType};
 use values::*;
 
 const API_PUBLIC_KEY: &str = "";
 const API_PRIVATE_KEY: &str = "";
 const API_URL: &str = "https://tradesatoshi.com/api/";
+
+pub type Result<T> = std::result::Result<T, Error>;
+pub type RunResult<T> = std::result::Result<T, reqwest::Error>;
 
 #[derive(AsStaticStr)]
 enum Api {
@@ -44,7 +49,7 @@ impl Query {
         self
     }
 
-    fn run(self) -> Result<reqwest::Response, reqwest::Error> {
+    fn run(self) -> RunResult<reqwest::Response> {
         let mut url: String = format!(
             "{}{}/{}",
             API_URL,
@@ -212,7 +217,7 @@ pub fn get_currencies() -> Result<Vec<Currency>> {
     let mut resp = Query::new("getcurrencies".to_string(), Api::Public)
         .run()
         .unwrap();
-    let data: APIResult<Vec<Currency>> = resp.json().unwrap();
+    let data: APIVecResult<Currency> = resp.json().unwrap();
     check_vec_response(data)
 }
 
@@ -234,7 +239,7 @@ pub fn get_market_history(market: String, count: Option<u8>) -> Result<Vec<Trade
         .params(Params::new().market(market).count(count))
         .run()
         .unwrap();
-    let data: APIResult<Vec<Trade>> = resp.json().unwrap();
+    let data: APIVecResult<Trade> = resp.json().unwrap();
     check_vec_response(data)
 }
 
@@ -251,7 +256,7 @@ pub fn get_market_summaries() -> Result<Vec<MarketSummary>> {
     let mut resp = Query::new("getmarketsummaries".to_string(), Api::Public)
         .run()
         .unwrap();
-    let data: APIResult<Vec<MarketSummary>> = resp.json().unwrap();
+    let data: APIVecResult<MarketSummary> = resp.json().unwrap();
     check_vec_response(data)
 }
 
@@ -294,7 +299,7 @@ pub fn get_balances() -> Result<Vec<Balance>> {
         .params(Params::new())
         .run()
         .unwrap();
-    let data: APIResult<Vec<Balance>> = resp.json().unwrap();
+    let data: APIVecResult<Balance> = resp.json().unwrap();
     check_vec_response(data)
 }
 
@@ -320,7 +325,7 @@ pub fn get_orders(market: Option<String>, count: Option<u8>) -> Result<Vec<Order
         .params(Params::new().market(market).count(count))
         .run()
         .unwrap();
-    let data: APIResult<Vec<Order>> = resp.json().unwrap();
+    let data: APIVecResult<Order> = resp.json().unwrap();
     check_vec_response(data)
 }
 
@@ -353,7 +358,7 @@ pub fn get_trade_history(market: String, count: u8, page_num: u8) -> Result<Vec<
         .params(Params::new().market(market).count(count).page_num(page_num))
         .run()
         .unwrap();
-    let data: APIResult<Vec<Trade>> = resp.json().unwrap();
+    let data: APIVecResult<Trade> = resp.json().unwrap();
     check_vec_response(data)
 }
 
@@ -393,7 +398,7 @@ pub fn get_deposits(currency: Option<String>, count: Option<u8>) -> Result<Vec<T
         .params(Params::new().currency(currency).count(count))
         .run()
         .unwrap();
-    let data: APIResult<Vec<Transaction>> = resp.json().unwrap();
+    let data: APIVecResult<Transaction> = resp.json().unwrap();
     check_vec_response(data)
 }
 
@@ -410,7 +415,7 @@ pub fn get_withdrawals(currency: Option<String>, count: Option<u8>) -> Result<Ve
         .params(Params::new().currency(currency).count(count))
         .run()
         .unwrap();
-    let data: APIResult<Vec<Transaction>> = resp.json().unwrap();
+    let data: APIVecResult<Transaction> = resp.json().unwrap();
     check_vec_response(data)
 }
 
@@ -432,12 +437,18 @@ fn check_single_response<T>(api_result: APIResult<T>) -> Result<T> {
     if api_result.success {
         return Ok(api_result.result.expect("Result should exist!"));
     }
-    Err("An error occured!")
+    Err(Error {
+        error_type: ErrorType::APIError,
+        message: api_result.message,
+    })
 }
 
 fn check_vec_response<T>(api_result: APIVecResult<T>) -> Result<Vec<T>> {
     if api_result.success {
         return Ok(api_result.result.expect("Result should exist!"));
     }
-    Err("An error occured!")
+    Err(Error {
+        error_type: ErrorType::APIError,
+        message: api_result.message,
+    })
 }

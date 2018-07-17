@@ -15,7 +15,9 @@ extern crate url;
 #[macro_use]
 extern crate strum_macros;
 extern crate rand;
+pub mod error;
 pub mod query;
+pub mod values;
 
 #[cfg(test)]
 mod tests {

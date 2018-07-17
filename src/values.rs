@@ -14,7 +14,7 @@ pub struct APIVecResult<T> {
     pub result: Option<Vec<T>>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Currency {
     pub currency: String,
     #[serde(rename = "currencyLong")]
@@ -26,7 +26,7 @@ pub struct Currency {
     pub status: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Address {
     pub currency: String,
     pub address: String,
@@ -60,7 +60,7 @@ pub struct Order {
     pub is_api: bool,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct MarketSummary {
     pub market: String,
     pub high: f32,
