@@ -10,11 +10,18 @@ use strum::AsStaticRef;
 use url::form_urlencoded::byte_serialize;
 
 // built-in
+use std;
 use std::str;
+
+use error::{Error, ErrorType};
+use values::*;
 
 const API_PUBLIC_KEY: &str = "";
 const API_PRIVATE_KEY: &str = "";
 const API_URL: &str = "https://tradesatoshi.com/api/";
+
+pub type Result<T> = std::result::Result<T, Error>;
+pub type RunResult<T> = std::result::Result<T, reqwest::Error>;
 
 #[derive(AsStaticStr)]
 enum Api {
@@ -42,7 +49,7 @@ impl Query {
         self
     }
 
-    fn run(self) -> Result<reqwest::Response, reqwest::Error> {
+    fn run(self) -> RunResult<reqwest::Response> {
         let mut url: String = format!(
             "{}{}/{}",
             API_URL,
@@ -206,48 +213,58 @@ fn generate_header(url: &str, params: &Params) -> Headers {
 // Public API Functions //
 //////////////////////////
 
-pub fn get_currencies() -> reqwest::Response {
-    Query::new("getcurrencies".to_string(), Api::Public)
+pub fn get_currencies() -> Result<Vec<Currency>> {
+    let mut resp = Query::new("getcurrencies".to_string(), Api::Public)
         .run()
-        .unwrap()
+        .unwrap();
+    let data: APIVecResult<Currency> = resp.json().unwrap();
+    check_vec_response(data)
 }
 
-pub fn get_ticker(market: String) -> reqwest::Response {
-    Query::new("getticker".to_string(), Api::Public)
+pub fn get_ticker(market: String) -> Result<Ticker> {
+    let mut resp = Query::new("getticker".to_string(), Api::Public)
         .params(Params::new().market(market))
         .run()
-        .unwrap()
+        .unwrap();
+    let data: APIResult<Ticker> = resp.json().unwrap();
+    check_single_response(data)
 }
 
-pub fn get_market_history(market: String, count: Option<u8>) -> reqwest::Response {
+pub fn get_market_history(market: String, count: Option<u8>) -> Result<Vec<Trade>> {
     let count: u8 = match count {
         Some(val) => val,
         None => 20,
     };
-    Query::new("getmarkethistory".to_string(), Api::Public)
+    let mut resp = Query::new("getmarkethistory".to_string(), Api::Public)
         .params(Params::new().market(market).count(count))
         .run()
-        .unwrap()
+        .unwrap();
+    let data: APIVecResult<Trade> = resp.json().unwrap();
+    check_vec_response(data)
 }
 
-pub fn get_market_summary(market: String) -> reqwest::Response {
-    Query::new("getmarketsummary".to_string(), Api::Public)
+pub fn get_market_summary(market: String) -> Result<MarketSummary> {
+    let mut resp = Query::new("getmarketsummary".to_string(), Api::Public)
         .params(Params::new().market(market))
         .run()
-        .unwrap()
+        .unwrap();
+    let data: APIResult<MarketSummary> = resp.json().unwrap();
+    check_single_response(data)
 }
 
-pub fn get_market_summaries() -> reqwest::Response {
-    Query::new("getmarketsummaries".to_string(), Api::Public)
+pub fn get_market_summaries() -> Result<Vec<MarketSummary>> {
+    let mut resp = Query::new("getmarketsummaries".to_string(), Api::Public)
         .run()
-        .unwrap()
+        .unwrap();
+    let data: APIVecResult<MarketSummary> = resp.json().unwrap();
+    check_vec_response(data)
 }
 
 pub fn get_order_book(
     market: String,
     typeo: Option<String>,
     depth: Option<u8>,
-) -> reqwest::Response {
+) -> Result<PublicOrderBook> {
     let typeo: String = match typeo {
         Some(val) => val,
         None => "both".to_string(),
@@ -256,38 +273,46 @@ pub fn get_order_book(
         Some(val) => val,
         None => 20,
     };
-    Query::new("getorderbook".to_string(), Api::Public)
+    let mut resp = Query::new("getorderbook".to_string(), Api::Public)
         .params(Params::new().market(market).typeo(typeo).depth(depth))
         .run()
-        .unwrap()
+        .unwrap();
+    let data: APIResult<PublicOrderBook> = resp.json().unwrap();
+    check_single_response(data)
 }
 
 ///////////////////////////
 // Private API Functions //
 ///////////////////////////
 
-pub fn get_balance(currency: String) -> reqwest::Response {
-    Query::new("getbalance".to_string(), Api::Private)
+pub fn get_balance(currency: String) -> Result<Balance> {
+    let mut resp = Query::new("getbalance".to_string(), Api::Private)
         .params(Params::new().currency(currency))
         .run()
-        .unwrap()
+        .unwrap();
+    let data: APIResult<Balance> = resp.json().unwrap();
+    check_single_response(data)
 }
 
-pub fn get_balances() -> reqwest::Response {
-    Query::new("getbalances".to_string(), Api::Private)
+pub fn get_balances() -> Result<Vec<Balance>> {
+    let mut resp = Query::new("getbalances".to_string(), Api::Private)
         .params(Params::new())
         .run()
-        .unwrap()
+        .unwrap();
+    let data: APIVecResult<Balance> = resp.json().unwrap();
+    check_vec_response(data)
 }
 
-pub fn get_order(orderid: u64) -> reqwest::Response {
-    Query::new("getorder".to_string(), Api::Private)
+pub fn get_order(orderid: u64) -> Result<Order> {
+    let mut resp = Query::new("getorder".to_string(), Api::Private)
         .params(Params::new().orderid(orderid))
         .run()
-        .unwrap()
+        .unwrap();
+    let data: APIResult<Order> = resp.json().unwrap();
+    check_single_response(data)
 }
 
-pub fn get_orders(market: Option<String>, count: Option<u8>) -> reqwest::Response {
+pub fn get_orders(market: Option<String>, count: Option<u8>) -> Result<Vec<Order>> {
     let market: String = match market {
         Some(val) => val,
         None => "all".to_string(),
@@ -296,14 +321,16 @@ pub fn get_orders(market: Option<String>, count: Option<u8>) -> reqwest::Respons
         Some(val) => val,
         None => 20,
     };
-    Query::new("getorders".to_string(), Api::Private)
+    let mut resp = Query::new("getorders".to_string(), Api::Private)
         .params(Params::new().market(market).count(count))
         .run()
-        .unwrap()
+        .unwrap();
+    let data: APIVecResult<Order> = resp.json().unwrap();
+    check_vec_response(data)
 }
 
-pub fn submit_order(market: String, typeo: String, amount: f64, price: f64) -> reqwest::Response {
-    Query::new("submitorder".to_string(), Api::Private)
+pub fn submit_order(market: String, typeo: String, amount: f64, price: f64) -> Result<SubmitOrder> {
+    let mut resp = Query::new("submitorder".to_string(), Api::Private)
         .params(
             Params::new()
                 .market(market)
@@ -312,32 +339,40 @@ pub fn submit_order(market: String, typeo: String, amount: f64, price: f64) -> r
                 .price(price),
         )
         .run()
-        .unwrap()
+        .unwrap();
+    let data: APIResult<SubmitOrder> = resp.json().unwrap();
+    check_single_response(data)
 }
 
-pub fn cancel_order(typeo: String, orderid: u64, market: String) -> reqwest::Response {
-    Query::new("cancelorder".to_string(), Api::Private)
+pub fn cancel_order(typeo: String, orderid: u64, market: String) -> Result<CancelOrder> {
+    let mut resp = Query::new("cancelorder".to_string(), Api::Private)
         .params(Params::new().market(market).typeo(typeo).orderid(orderid))
         .run()
-        .unwrap()
+        .unwrap();
+    let data: APIResult<CancelOrder> = resp.json().unwrap();
+    check_single_response(data)
 }
 
-pub fn get_trade_history(market: String, count: u8, page_num: u8) -> reqwest::Response {
-    Query::new("gettradehistory".to_string(), Api::Private)
+pub fn get_trade_history(market: String, count: u8, page_num: u8) -> Result<Vec<Trade>> {
+    let mut resp = Query::new("gettradehistory".to_string(), Api::Private)
         .params(Params::new().market(market).count(count).page_num(page_num))
         .run()
-        .unwrap()
+        .unwrap();
+    let data: APIVecResult<Trade> = resp.json().unwrap();
+    check_vec_response(data)
 }
 
-pub fn generate_address(currency: String) -> reqwest::Response {
-    Query::new("generateaddress".to_string(), Api::Private)
+pub fn generate_address(currency: String) -> Result<Address> {
+    let mut resp = Query::new("generateaddress".to_string(), Api::Private)
         .params(Params::new().currency(currency))
         .run()
-        .unwrap()
+        .unwrap();
+    let data: APIResult<Address> = resp.json().unwrap();
+    check_single_response(data)
 }
 
-pub fn submit_withdraw(currency: String, address: String, amount: f64) -> reqwest::Response {
-    Query::new("gettradehistory".to_string(), Api::Private)
+pub fn submit_withdraw(currency: String, address: String, amount: f64) -> Result<Id> {
+    let mut resp = Query::new("gettradehistory".to_string(), Api::Private)
         .params(
             Params::new()
                 .currency(currency)
@@ -345,10 +380,12 @@ pub fn submit_withdraw(currency: String, address: String, amount: f64) -> reqwes
                 .amount(amount),
         )
         .run()
-        .unwrap()
+        .unwrap();
+    let data: APIResult<Id> = resp.json().unwrap();
+    check_single_response(data)
 }
 
-pub fn get_deposits(currency: Option<String>, count: Option<u8>) -> reqwest::Response {
+pub fn get_deposits(currency: Option<String>, count: Option<u8>) -> Result<Vec<Transaction>> {
     let currency: String = match currency {
         Some(val) => val,
         None => "all".to_string(),
@@ -357,13 +394,15 @@ pub fn get_deposits(currency: Option<String>, count: Option<u8>) -> reqwest::Res
         Some(val) => val,
         None => 20,
     };
-    Query::new("gettradehistory".to_string(), Api::Private)
+    let mut resp = Query::new("gettradehistory".to_string(), Api::Private)
         .params(Params::new().currency(currency).count(count))
         .run()
-        .unwrap()
+        .unwrap();
+    let data: APIVecResult<Transaction> = resp.json().unwrap();
+    check_vec_response(data)
 }
 
-pub fn get_withdrawals(currency: Option<String>, count: Option<u8>) -> reqwest::Response {
+pub fn get_withdrawals(currency: Option<String>, count: Option<u8>) -> Result<Vec<Transaction>> {
     let currency: String = match currency {
         Some(val) => val,
         None => "all".to_string(),
@@ -372,14 +411,16 @@ pub fn get_withdrawals(currency: Option<String>, count: Option<u8>) -> reqwest::
         Some(val) => val,
         None => 20,
     };
-    Query::new("gettradehistory".to_string(), Api::Private)
+    let mut resp = Query::new("gettradehistory".to_string(), Api::Private)
         .params(Params::new().currency(currency).count(count))
         .run()
-        .unwrap()
+        .unwrap();
+    let data: APIVecResult<Transaction> = resp.json().unwrap();
+    check_vec_response(data)
 }
 
-pub fn submit_transfer(currency: String, username: String, amount: f64) -> reqwest::Response {
-    Query::new("gettradehistory".to_string(), Api::Private)
+pub fn submit_transfer(currency: String, username: String, amount: f64) -> Result<SubmitTransfer> {
+    let mut resp = Query::new("gettradehistory".to_string(), Api::Private)
         .params(
             Params::new()
                 .currency(currency)
@@ -387,5 +428,27 @@ pub fn submit_transfer(currency: String, username: String, amount: f64) -> reqwe
                 .amount(amount),
         )
         .run()
-        .unwrap()
+        .unwrap();
+    let data: APIResult<SubmitTransfer> = resp.json().unwrap();
+    check_single_response(data)
+}
+
+fn check_single_response<T>(api_result: APIResult<T>) -> Result<T> {
+    if api_result.success {
+        return Ok(api_result.result.expect("Result should exist!"));
+    }
+    Err(Error {
+        error_type: ErrorType::APIError,
+        message: api_result.message,
+    })
+}
+
+fn check_vec_response<T>(api_result: APIVecResult<T>) -> Result<Vec<T>> {
+    if api_result.success {
+        return Ok(api_result.result.expect("Result should exist!"));
+    }
+    Err(Error {
+        error_type: ErrorType::APIError,
+        message: api_result.message,
+    })
 }
