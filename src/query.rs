@@ -55,7 +55,6 @@ impl Query {
             self.kind.as_static().to_lowercase(),
             self.endpoint
         ).to_owned();
-        println!("url: {}", url);
         match self.kind {
             Api::Public => {
                 match self.params {
@@ -210,7 +209,6 @@ pub fn get_currencies() -> Result<Vec<Currency>> {
     let mut resp = Query::new("getcurrencies".to_string(), Api::Public)
         .run()
         .unwrap();
-    println!("{:?}", resp);
     let data: APIVecResult<Currency> = resp.json().unwrap();
     check_vec_response(data)
 }
