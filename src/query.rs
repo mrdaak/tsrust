@@ -1,15 +1,13 @@
-// extern
 use base64::{decode, encode};
 use hmac::{Hmac, Mac};
 use rand;
 use reqwest;
-use reqwest::header::{qitem, AcceptEncoding, Authorization, Encoding, Headers, UserAgent};
+use reqwest::header::{Authorization, ContentType, Headers, UserAgent};
 use serde_json::to_string;
 use sha2::Sha512;
 use strum::AsStaticRef;
 use url::form_urlencoded::byte_serialize;
 
-// built-in
 use std;
 use std::str;
 
@@ -23,6 +21,7 @@ const API_URL: &str = "https://tradesatoshi.com/api/";
 pub type Result<T> = std::result::Result<T, Error>;
 pub type RunResult<T> = std::result::Result<T, reqwest::Error>;
 
+/// Api type
 #[derive(AsStaticStr)]
 enum Api {
     Public,
@@ -79,6 +78,7 @@ impl Query {
     }
 }
 
+/// Query parameters
 #[derive(QueryParams, Serialize, Debug)]
 struct Params {
     #[serde(skip_serializing_if = "Option::is_none", rename = "Market")]
@@ -172,8 +172,6 @@ impl Params {
     }
 }
 
-header! { (CT, "Content-Type") => [String] }
-
 fn generate_header(url: &str, params: &Params) -> Headers {
     let url_encoded: String = byte_serialize(&url.as_bytes()).collect();
     let post_params = &to_string(&params).unwrap();
@@ -195,17 +193,11 @@ fn generate_header(url: &str, params: &Params) -> Headers {
     let header: String = format!("Basic {}:{}:{}", API_PUBLIC_KEY, hmac_sign, &nonce);
 
     let mut headers = Headers::new();
-    headers.set(CT("application/json; charset=utf-8".to_string()));
+    headers.set(ContentType::json());
     headers.set(Authorization(header));
     headers.set(UserAgent::new(
         "Mozilla/4.0 (compatible; TradeSatoshi API Rust client)",
     ));
-    headers.set(AcceptEncoding(vec![
-        qitem(Encoding::Identity),
-        qitem(Encoding::Chunked),
-        qitem(Encoding::Gzip),
-        qitem(Encoding::Deflate),
-    ]));
     headers
 }
 
@@ -213,14 +205,19 @@ fn generate_header(url: &str, params: &Params) -> Headers {
 // Public API Functions //
 //////////////////////////
 
+/// Get currencies
 pub fn get_currencies() -> Result<Vec<Currency>> {
     let mut resp = Query::new("getcurrencies".to_string(), Api::Public)
         .run()
         .unwrap();
+    println!("{:?}", resp);
     let data: APIVecResult<Currency> = resp.json().unwrap();
     check_vec_response(data)
 }
 
+/// Get ticker
+///
+/// market: The market name e.g. 'LTC_BTC' (required)
 pub fn get_ticker(market: String) -> Result<Ticker> {
     let mut resp = Query::new("getticker".to_string(), Api::Public)
         .params(Params::new().market(market))
@@ -230,6 +227,10 @@ pub fn get_ticker(market: String) -> Result<Ticker> {
     check_single_response(data)
 }
 
+/// Get market history
+///
+/// market: The market name e.g. 'LTC_BTC' (required)
+/// count: The max amount of records to return (optional, default: 20)
 pub fn get_market_history(market: String, count: Option<u8>) -> Result<Vec<Trade>> {
     let count: u8 = match count {
         Some(val) => val,
@@ -243,6 +244,9 @@ pub fn get_market_history(market: String, count: Option<u8>) -> Result<Vec<Trade
     check_vec_response(data)
 }
 
+/// Get market summary
+///
+/// market: The market name e.g. 'LTC_BTC' (required)
 pub fn get_market_summary(market: String) -> Result<MarketSummary> {
     let mut resp = Query::new("getmarketsummary".to_string(), Api::Public)
         .params(Params::new().market(market))
@@ -252,6 +256,7 @@ pub fn get_market_summary(market: String) -> Result<MarketSummary> {
     check_single_response(data)
 }
 
+/// Get market summaries
 pub fn get_market_summaries() -> Result<Vec<MarketSummary>> {
     let mut resp = Query::new("getmarketsummaries".to_string(), Api::Public)
         .run()
@@ -260,6 +265,11 @@ pub fn get_market_summaries() -> Result<Vec<MarketSummary>> {
     check_vec_response(data)
 }
 
+/// Get order book
+///
+/// market: The market name e.g. 'LTC_BTC' (required)
+/// type: The order book type 'buy', 'sell', 'both' (optional, default: 'both')
+/// depth: Max of records to return (optional, default: 20)
 pub fn get_order_book(
     market: String,
     typeo: Option<String>,
@@ -285,6 +295,9 @@ pub fn get_order_book(
 // Private API Functions //
 ///////////////////////////
 
+/// Get balance
+///
+/// currency: The currency of the balance to return e.g. 'BTC' (required)
 pub fn get_balance(currency: String) -> Result<Balance> {
     let mut resp = Query::new("getbalance".to_string(), Api::Private)
         .params(Params::new().currency(currency))
@@ -294,6 +307,7 @@ pub fn get_balance(currency: String) -> Result<Balance> {
     check_single_response(data)
 }
 
+/// Get balances
 pub fn get_balances() -> Result<Vec<Balance>> {
     let mut resp = Query::new("getbalances".to_string(), Api::Private)
         .params(Params::new())
@@ -303,6 +317,9 @@ pub fn get_balances() -> Result<Vec<Balance>> {
     check_vec_response(data)
 }
 
+/// Get order
+///
+/// orderid: The order to return (required)
 pub fn get_order(orderid: u64) -> Result<Order> {
     let mut resp = Query::new("getorder".to_string(), Api::Private)
         .params(Params::new().orderid(orderid))
@@ -312,6 +329,10 @@ pub fn get_order(orderid: u64) -> Result<Order> {
     check_single_response(data)
 }
 
+/// Get orders
+///
+/// market: The market name e.g. 'LTC_BTC' (optional, default: 'all')
+/// count: The maximum count of records to return (optional, default: 20)
 pub fn get_orders(market: Option<String>, count: Option<u8>) -> Result<Vec<Order>> {
     let market: String = match market {
         Some(val) => val,
@@ -329,6 +350,12 @@ pub fn get_orders(market: Option<String>, count: Option<u8>) -> Result<Vec<Order
     check_vec_response(data)
 }
 
+/// Submit order
+///
+/// market: The market name e.g. 'LTC_BTC' (required)
+/// type: The order type name e.g. 'Buy', 'Sell' (required)
+/// amount: The amount to buy/sell (required)
+/// price: The price to buy/sell for (required)
 pub fn submit_order(market: String, typeo: String, amount: f64, price: f64) -> Result<SubmitOrder> {
     let mut resp = Query::new("submitorder".to_string(), Api::Private)
         .params(
@@ -344,6 +371,11 @@ pub fn submit_order(market: String, typeo: String, amount: f64, price: f64) -> R
     check_single_response(data)
 }
 
+/// Cancel order
+///
+/// type: The cancel type, options: 'Single','Market','MarketBuys','MarketSells','AllBuys','AllSells','All'(required)
+/// orderId: The order to cancel(required if cancel type 'Single')
+/// market: The order to cancel(required if cancel type 'Market','MarketBuys','MarketSells')
 pub fn cancel_order(typeo: String, orderid: u64, market: String) -> Result<CancelOrder> {
     let mut resp = Query::new("cancelorder".to_string(), Api::Private)
         .params(Params::new().market(market).typeo(typeo).orderid(orderid))
@@ -353,6 +385,11 @@ pub fn cancel_order(typeo: String, orderid: u64, market: String) -> Result<Cance
     check_single_response(data)
 }
 
+/// Get trade history
+///
+/// market: The market name e.g. 'LTC_BTC' (optional, default: 'all')
+/// count: The maximum count of records to return (optional, default: 20)
+/// page_num: The Pagenumber for maintain pagination (optional, default: 0)
 pub fn get_trade_history(market: String, count: u8, page_num: u8) -> Result<Vec<Trade>> {
     let mut resp = Query::new("gettradehistory".to_string(), Api::Private)
         .params(Params::new().market(market).count(count).page_num(page_num))
@@ -362,6 +399,9 @@ pub fn get_trade_history(market: String, count: u8, page_num: u8) -> Result<Vec<
     check_vec_response(data)
 }
 
+/// Generate address
+///
+/// currency: The currency to generate address for e.g. 'BTC' (required)
 pub fn generate_address(currency: String) -> Result<Address> {
     let mut resp = Query::new("generateaddress".to_string(), Api::Private)
         .params(Params::new().currency(currency))
@@ -371,6 +411,11 @@ pub fn generate_address(currency: String) -> Result<Address> {
     check_single_response(data)
 }
 
+/// Submit withdraw
+///
+/// currency: The currency name e.g. 'BTC' (required)
+/// address: The receiving address (required)
+/// amount: The amount to withdraw (required)
 pub fn submit_withdraw(currency: String, address: String, amount: f64) -> Result<Id> {
     let mut resp = Query::new("gettradehistory".to_string(), Api::Private)
         .params(
@@ -385,6 +430,10 @@ pub fn submit_withdraw(currency: String, address: String, amount: f64) -> Result
     check_single_response(data)
 }
 
+/// Get deposits
+///
+/// currency: The currency name e.g. 'BTC' (optional, default: 'all')
+/// count: The maximum count of records to return (optional, default: 20)
 pub fn get_deposits(currency: Option<String>, count: Option<u8>) -> Result<Vec<Transaction>> {
     let currency: String = match currency {
         Some(val) => val,
@@ -402,6 +451,10 @@ pub fn get_deposits(currency: Option<String>, count: Option<u8>) -> Result<Vec<T
     check_vec_response(data)
 }
 
+/// Get withdrawals
+///
+/// currency: The currency name e.g. 'BTC' (optional, default: 'all')
+/// count: The maximum count of records to return (optional, default: 20)
 pub fn get_withdrawals(currency: Option<String>, count: Option<u8>) -> Result<Vec<Transaction>> {
     let currency: String = match currency {
         Some(val) => val,
@@ -419,6 +472,11 @@ pub fn get_withdrawals(currency: Option<String>, count: Option<u8>) -> Result<Ve
     check_vec_response(data)
 }
 
+/// Submit transfer
+///
+/// currency: The currency name e.g. 'BTC' (required)
+/// username: The TradeSatoshi username of the person to transfer the funds to. (required)
+/// amount: The amount of coin to transfer e.g. 251.00000000 (required)
 pub fn submit_transfer(currency: String, username: String, amount: f64) -> Result<SubmitTransfer> {
     let mut resp = Query::new("gettradehistory".to_string(), Api::Private)
         .params(
@@ -437,18 +495,30 @@ fn check_single_response<T>(api_result: APIResult<T>) -> Result<T> {
     if api_result.success {
         return Ok(api_result.result.expect("Result should exist!"));
     }
-    Err(Error {
-        error_type: ErrorType::APIError,
-        message: api_result.message,
-    })
+    match api_result.message {
+        Some(msg) => Err(Error {
+            error_type: ErrorType::APIError,
+            message: msg,
+        }),
+        None => Err(Error {
+            error_type: ErrorType::APIError,
+            message: "An error occured.".to_string(),
+        }),
+    }
 }
 
 fn check_vec_response<T>(api_result: APIVecResult<T>) -> Result<Vec<T>> {
     if api_result.success {
         return Ok(api_result.result.expect("Result should exist!"));
     }
-    Err(Error {
-        error_type: ErrorType::APIError,
-        message: api_result.message,
-    })
+    match api_result.message {
+        Some(msg) => Err(Error {
+            error_type: ErrorType::APIError,
+            message: msg,
+        }),
+        None => Err(Error {
+            error_type: ErrorType::APIError,
+            message: "An error occured.".to_string(),
+        }),
+    }
 }

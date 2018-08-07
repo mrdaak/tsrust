@@ -21,7 +21,7 @@ impl StdError for Error {
     fn description(&self) -> &str {
         match self.error_type {
             ErrorType::APIError => "Error while calling TradeSatoshi API",
-            ErrorType::JsonError => "Error while converting response to Json Value",
+            ErrorType::JsonError => "Error while converting response to JSON value",
             ErrorType::NoResults => "No results found",
         }
     }
