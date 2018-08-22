@@ -19,82 +19,46 @@ pub mod values;
 
 #[cfg(test)]
 mod tests {
-    // use super::*;
+    use super::*;
 
     //////////////////////
     // Public API tests //
     //////////////////////
 
     // #[test]
-    // fn test_get_currencies() {
-    //     let response = query::get_currencies().unwrap();
-    //     println!("{:?}", response);
-    // }
+    // fn test_get_currencies() {}
 
     // #[test]
-    // fn test_get_ticker() {
-    //     let response = query::get_ticker("LTC_BTC".to_string()).unwrap();
-    //     println!("{}", response.ask);
-    // }
+    // fn test_get_ticker() {}
 
     // #[test]
-    // fn test_get_market_history() {
-    //     let response = query::get_market_history("LTC_BTC".to_string(), None).unwrap();
-    //     println!("{:?}", response);
-    // }
+    // fn test_get_market_history() {}
 
     // #[test]
-    // fn test_get_market_summary() {
-    //     let response = query::get_market_summary("LTC_BTC".to_string()).unwrap();
-    //     println!("{:?}", response);
-    // }
+    // fn test_get_market_summary() {}
 
     // #[test]
-    // fn test_get_market_summaries() {
-    //     let response = query::get_market_summaries().unwrap();
-    //     println!("{:?}", response);
-    // }
+    // fn test_get_market_summaries() {}
 
     // #[test]
-    // fn test_get_order_book() {
-    //     let response =
-    //         query::get_order_book("LTC_BTC".to_string(), Some("both".to_string()), Some(10));
-    //     println!("{:?}", response);
-    // }
+    // fn test_get_order_book() {}
 
     ///////////////////////
     // Private API tests //
     ///////////////////////
 
     // #[test]
-    // fn test_get_balance() {
-    //     let balance = query::get_balance("PPC".to_string()).unwrap();
-    //     println!("{}", balance.currency);
-    // }
+    // fn test_get_balance() {}
 
     // #[test]
-    // fn test_get_balances() {
-    //     let response = query::get_balances().unwrap();
-    //     println!("{:?}", response);
-    // }
+    // fn test_get_balances() {}
 
     // #[test]
-    // fn test_get_orders() {
-    //     let response = query::get_orders(None, None).unwrap();
-    //     println!("{:?}", response);
-    // }
+    // fn test_get_orders() {}
 
     // #[test]
-    // fn test_generate_address() {
-    //     let response = query::generate_address("PPC".to_string()).unwrap();
-    //     println!("{}", response.address);
-    // }
+    // fn test_generate_address() {}
 
     // #[test]
-    // fn test_submit_withdraw() {
-    //     let response =
-    //         query::submit_withdraw("PPC".to_string(), "123456".to_string(), 1222223.12323)
-    //             .unwrap();
-    //     println!("{:?}", response);
-    // }
+    // fn test_submit_withdraw() {}
 }
