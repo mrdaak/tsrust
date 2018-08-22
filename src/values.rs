@@ -110,6 +110,22 @@ pub struct Trade {
     pub order_type: String,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct TradeHistory {
+    pub id: u32,
+    pub market: String,
+    #[serde(rename = "type")]
+    pub typeo: String,
+    pub amount: f32,
+    pub rate: f32,
+    pub fee: f32,
+    pub total: f32,
+    #[serde(rename = "timeStamp")]
+    pub time_stamp: String,
+    #[serde(rename = "isApi")]
+    pub is_api: bool,
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct Transaction {
     pub id: String,

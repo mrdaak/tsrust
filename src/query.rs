@@ -305,11 +305,24 @@ impl Client {
     /// type: The cancel type, options: 'Single','Market','MarketBuys','MarketSells','AllBuys','AllSells','All'(required)
     /// orderId: The order to cancel(required if cancel type 'Single')
     /// market: The order to cancel(required if cancel type 'Market','MarketBuys','MarketSells')
-    pub fn cancel_order(&self, typeo: String, orderid: u64, market: String) -> Result<CancelOrder> {
-        let mut resp = self.run(
-            Query::new("cancelorder".to_string(), Api::Private)
-                .params(Params::new().market(market).typeo(typeo).orderid(orderid)),
-        ).unwrap();
+    pub fn cancel_order(
+        &self,
+        typeo: String,
+        orderid: Option<u64>,
+        market: Option<String>,
+    ) -> Result<CancelOrder> {
+        let mut params: Params = Params::new().typeo(typeo);
+        params = match market {
+            Some(market) => params.market(market),
+            None => params,
+        };
+        params = match orderid {
+            Some(orderid) => params.orderid(orderid),
+            None => params,
+        };
+
+        let mut resp = self.run(Query::new("cancelorder".to_string(), Api::Private).params(params))
+            .unwrap();
         let data: APIResult<CancelOrder> = resp.json().unwrap();
         self.check_single_response(data)
     }
@@ -319,12 +332,29 @@ impl Client {
     /// market: The market name e.g. 'LTC_BTC' (optional, default: 'all')
     /// count: The maximum count of records to return (optional, default: 20)
     /// page_num: The Pagenumber for maintain pagination (optional, default: 0)
-    pub fn get_trade_history(&self, market: String, count: u8, page_num: u8) -> Result<Vec<Trade>> {
+    pub fn get_trade_history(
+        &self,
+        market: Option<String>,
+        count: Option<u8>,
+        page_num: Option<u8>,
+    ) -> Result<Vec<TradeHistory>> {
+        let market: String = match market {
+            Some(val) => val,
+            None => "all".to_string(),
+        };
+        let count: u8 = match count {
+            Some(val) => val,
+            None => 20,
+        };
+        let page_num: u8 = match page_num {
+            Some(val) => val,
+            None => 0,
+        };
         let mut resp = self.run(
             Query::new("gettradehistory".to_string(), Api::Private)
                 .params(Params::new().market(market).count(count).page_num(page_num)),
         ).unwrap();
-        let data: APIVecResult<Trade> = resp.json().unwrap();
+        let data: APIVecResult<TradeHistory> = resp.json().unwrap();
         self.check_vec_response(data)
     }
 

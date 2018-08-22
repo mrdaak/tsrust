@@ -21,7 +21,7 @@ pub use query::Client;
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    // use super::*;
 
     //////////////////////
     // Public API tests //
@@ -59,8 +59,27 @@ mod tests {
     // fn test_get_orders() {}
 
     // #[test]
+    // fn test_submit_order() {}
+
+    // #[test]
+    // fn test_cancel_order() {}
+
+    // #[test]
+    // fn test_get_trade_history() {}
+
+    // #[test]
     // fn test_generate_address() {}
 
     // #[test]
     // fn test_submit_withdraw() {}
+
+    // #[test]
+    // fn test_get_deposits() {}
+
+    // #[test]
+    // fn test_get_withdrawals() {}
+
+    // #[test]
+    // fn test_submit_transfer() {}
+
 }
