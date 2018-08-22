@@ -35,13 +35,13 @@ pub struct Balance {
     pub currency: String,
     #[serde(rename = "currencyLong")]
     pub currency_long: String,
-    pub available: f64,
-    pub total: f64,
+    pub available: f32,
+    pub total: f32,
     #[serde(rename = "heldForTrades")]
-    pub held_for_trades: f64,
-    pub unconfirmed: f64,
+    pub held_for_trades: f32,
+    pub unconfirmed: f32,
     #[serde(rename = "pendingWithdraw")]
-    pub pending_withdraw: f64,
+    pub pending_withdraw: f32,
     pub address: Option<String>,
 }
 
@@ -52,10 +52,10 @@ pub struct Order {
     // type is a reserved keyword
     #[serde(rename = "type")]
     pub order_type: String,
-    pub amount: f64,
-    pub rate: f64,
-    pub remaining: f64,
-    pub total: f64,
+    pub amount: f32,
+    pub rate: f32,
+    pub remaining: f32,
+    pub total: f32,
     pub status: String,
     pub timestamp: String,
     #[serde(rename = "isApi")]
@@ -67,10 +67,10 @@ pub struct MarketSummary {
     pub market: String,
     pub high: f32,
     pub low: f32,
-    pub volume: f64,
-    pub last: f64,
+    pub volume: f32,
+    pub last: f32,
     #[serde(rename = "baseVolume")]
-    pub base_volume: f64,
+    pub base_volume: f32,
     pub bid: f32,
     pub ask: f32,
     #[serde(rename = "openBuyOrders")]

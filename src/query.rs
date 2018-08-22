@@ -157,8 +157,8 @@ impl Client {
     ///
     /// market: The market name e.g. 'LTC_BTC' (required)
     /// count: The max amount of records to return (optional, default: 20)
-    pub fn get_market_history(&self, market: String, count: Option<u8>) -> Result<Vec<Trade>> {
-        let count: u8 = match count {
+    pub fn get_market_history(&self, market: String, count: Option<u32>) -> Result<Vec<Trade>> {
+        let count: u32 = match count {
             Some(val) => val,
             None => 20,
         };
@@ -199,13 +199,13 @@ impl Client {
         &self,
         market: String,
         typeo: Option<String>,
-        depth: Option<u8>,
+        depth: Option<u32>,
     ) -> Result<PublicOrderBook> {
         let typeo: String = match typeo {
             Some(val) => val,
             None => "both".to_string(),
         };
-        let depth: u8 = match depth {
+        let depth: u32 = match depth {
             Some(val) => val,
             None => 20,
         };
@@ -245,7 +245,7 @@ impl Client {
     /// Get order
     ///
     /// orderid: The order to return (required)
-    pub fn get_order(&self, orderid: u64) -> Result<Order> {
+    pub fn get_order(&self, orderid: u32) -> Result<Order> {
         let mut resp = self.run(
             Query::new("getorder".to_string(), Api::Private).params(Params::new().orderid(orderid)),
         ).unwrap();
@@ -257,12 +257,12 @@ impl Client {
     ///
     /// market: The market name e.g. 'LTC_BTC' (optional, default: 'all')
     /// count: The maximum count of records to return (optional, default: 20)
-    pub fn get_orders(&self, market: Option<String>, count: Option<u8>) -> Result<Vec<Order>> {
+    pub fn get_orders(&self, market: Option<String>, count: Option<u32>) -> Result<Vec<Order>> {
         let market: String = match market {
             Some(val) => val,
             None => "all".to_string(),
         };
-        let count: u8 = match count {
+        let count: u32 = match count {
             Some(val) => val,
             None => 20,
         };
@@ -284,8 +284,8 @@ impl Client {
         &self,
         market: String,
         typeo: String,
-        amount: f64,
-        price: f64,
+        amount: f32,
+        price: f32,
     ) -> Result<SubmitOrder> {
         let mut resp = self.run(
             Query::new("submitorder".to_string(), Api::Private).params(
@@ -308,7 +308,7 @@ impl Client {
     pub fn cancel_order(
         &self,
         typeo: String,
-        orderid: Option<u64>,
+        orderid: Option<u32>,
         market: Option<String>,
     ) -> Result<CancelOrder> {
         let mut params: Params = Params::new().typeo(typeo);
@@ -335,18 +335,18 @@ impl Client {
     pub fn get_trade_history(
         &self,
         market: Option<String>,
-        count: Option<u8>,
-        page_num: Option<u8>,
+        count: Option<u32>,
+        page_num: Option<u32>,
     ) -> Result<Vec<TradeHistory>> {
         let market: String = match market {
             Some(val) => val,
             None => "all".to_string(),
         };
-        let count: u8 = match count {
+        let count: u32 = match count {
             Some(val) => val,
             None => 20,
         };
-        let page_num: u8 = match page_num {
+        let page_num: u32 = match page_num {
             Some(val) => val,
             None => 0,
         };
@@ -375,7 +375,7 @@ impl Client {
     /// currency: The currency name e.g. 'BTC' (required)
     /// address: The receiving address (required)
     /// amount: The amount to withdraw (required)
-    pub fn submit_withdraw(&self, currency: String, address: String, amount: f64) -> Result<Id> {
+    pub fn submit_withdraw(&self, currency: String, address: String, amount: f32) -> Result<Id> {
         let mut resp = self.run(
             Query::new("gettradehistory".to_string(), Api::Private).params(
                 Params::new()
@@ -395,13 +395,13 @@ impl Client {
     pub fn get_deposits(
         &self,
         currency: Option<String>,
-        count: Option<u8>,
+        count: Option<u32>,
     ) -> Result<Vec<Transaction>> {
         let currency: String = match currency {
             Some(val) => val,
             None => "all".to_string(),
         };
-        let count: u8 = match count {
+        let count: u32 = match count {
             Some(val) => val,
             None => 20,
         };
@@ -420,13 +420,13 @@ impl Client {
     pub fn get_withdrawals(
         &self,
         currency: Option<String>,
-        count: Option<u8>,
+        count: Option<u32>,
     ) -> Result<Vec<Transaction>> {
         let currency: String = match currency {
             Some(val) => val,
             None => "all".to_string(),
         };
-        let count: u8 = match count {
+        let count: u32 = match count {
             Some(val) => val,
             None => 20,
         };
@@ -447,7 +447,7 @@ impl Client {
         &self,
         currency: String,
         username: String,
-        amount: f64,
+        amount: f32,
     ) -> Result<SubmitTransfer> {
         let mut resp = self.run(
             Query::new("gettradehistory".to_string(), Api::Private).params(
@@ -489,23 +489,23 @@ struct Params {
     #[serde(skip_serializing_if = "Option::is_none", rename = "Market")]
     market: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none", rename = "Count")]
-    count: Option<u8>,
+    count: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none", rename = "Currency")]
     currency: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none", rename = "Type")]
     typeo: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none", rename = "Depth")]
-    depth: Option<u8>,
+    depth: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none", rename = "Amount")]
-    amount: Option<f64>,
+    amount: Option<f32>,
     #[serde(skip_serializing_if = "Option::is_none", rename = "Price")]
-    price: Option<f64>,
+    price: Option<f32>,
     #[serde(skip_serializing_if = "Option::is_none", rename = "Address")]
     address: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none", rename = "PageNumber")]
-    page_num: Option<u8>,
+    page_num: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none", rename = "OrderId")]
-    orderid: Option<u64>,
+    orderid: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none", rename = "Username")]
     username: Option<String>,
 }
@@ -532,7 +532,7 @@ impl Params {
         self
     }
 
-    fn count(mut self, count: u8) -> Self {
+    fn count(mut self, count: u32) -> Self {
         self.count = Some(count);
         self
     }
@@ -547,15 +547,15 @@ impl Params {
         self
     }
 
-    fn depth(mut self, depth: u8) -> Self {
+    fn depth(mut self, depth: u32) -> Self {
         self.depth = Some(depth);
         self
     }
-    fn amount(mut self, amount: f64) -> Self {
+    fn amount(mut self, amount: f32) -> Self {
         self.amount = Some(amount);
         self
     }
-    fn price(mut self, price: f64) -> Self {
+    fn price(mut self, price: f32) -> Self {
         self.price = Some(price);
         self
     }
@@ -563,11 +563,11 @@ impl Params {
         self.address = Some(address);
         self
     }
-    fn page_num(mut self, page_num: u8) -> Self {
+    fn page_num(mut self, page_num: u32) -> Self {
         self.page_num = Some(page_num);
         self
     }
-    fn orderid(mut self, orderid: u64) -> Self {
+    fn orderid(mut self, orderid: u32) -> Self {
         self.orderid = Some(orderid);
         self
     }
