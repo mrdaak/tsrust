@@ -14,8 +14,10 @@ extern crate url;
 extern crate strum_macros;
 extern crate rand;
 pub mod error;
-pub mod query;
 pub mod values;
+
+mod query;
+pub use query::Client;
 
 #[cfg(test)]
 mod tests {
