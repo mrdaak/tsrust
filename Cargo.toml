@@ -1,5 +1,5 @@
 [package]
-name = "tradesatoshi-api"
+name = "tradesatoshi_api"
 version = "0.1.0"
 description = "A Tradesatoshi.com API wrapper library in Rust"
 
