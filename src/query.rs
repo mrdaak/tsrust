@@ -57,26 +57,24 @@ impl Client {
                 reqwest::get(&url)
             }
             Api::Private => {
-                let headers: Headers = self.generate_header(&query.params.as_ref().unwrap());
+                let headers: Headers =
+                    self.generate_header(&query.params.as_ref().unwrap(), url.clone());
+                let params = &query.params.unwrap();
                 let client = reqwest::Client::new();
-                let response = client
-                    .post(&url)
-                    .json(&query.params.unwrap())
-                    .headers(headers)
-                    .send();
+                let response = client.post(&url).json(params).headers(headers).send();
                 response
             }
         }
     }
 
-    fn generate_header(&self, params: &Params) -> Headers {
-        let url_encoded: String = byte_serialize(&self.api_url.as_bytes()).collect();
+    fn generate_header(&self, params: &Params, url: String) -> Headers {
+        let url_encoded: String = byte_serialize(&url.as_bytes()).collect();
         let post_params = &to_string(&params).unwrap();
         let randn: f64 = rand::random();
         let nonce = &randn.to_string()[2..];
         let signature: String = format!(
             "{}POST{}{}{}",
-            &self.api_secret,
+            &self.api_key,
             &url_encoded.to_lowercase(),
             &nonce,
             &encode(&post_params)
@@ -88,7 +86,6 @@ impl Client {
         let hmac_sign = encode(&mac.result().code());
 
         let header: String = format!("Basic {}:{}:{}", self.api_key, hmac_sign, &nonce);
-
         let mut headers = Headers::new();
         headers.set(ContentType::json());
         headers.set(Authorization(header));

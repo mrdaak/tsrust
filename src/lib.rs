@@ -21,7 +21,7 @@ pub use query::Client;
 
 #[cfg(test)]
 mod tests {
-    // use super::*;
+    use super::*;
 
     //////////////////////
     // Public API tests //
@@ -81,5 +81,4 @@ mod tests {
 
     // #[test]
     // fn test_submit_transfer() {}
-
 }
