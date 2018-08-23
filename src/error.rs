@@ -21,7 +21,7 @@ impl StdError for Error {
     fn description(&self) -> &str {
         match self.error_type {
             ErrorType::APIError => "Error while calling TradeSatoshi API",
-            ErrorType::JsonError => "Error while converting response to Json Value",
+            ErrorType::JsonError => "Error while converting response to JSON value",
             ErrorType::NoResults => "No results found",
         }
     }
@@ -30,9 +30,9 @@ impl StdError for Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.error_type {
-            ErrorType::APIError => write!(f, "{}: {}", self.description(), self.message),
-            ErrorType::JsonError => write!(f, "{}: {}", self.description(), self.message),
-            ErrorType::NoResults => write!(f, "{} ({})!", self.description(), self.message),
+            ErrorType::APIError => write!(f, "{}: {}", self, self.cause().unwrap()),
+            ErrorType::JsonError => write!(f, "{}: {}", self, self.cause().unwrap()),
+            ErrorType::NoResults => write!(f, "{} ({})!", self, self.cause().unwrap()),
         }
     }
 }
@@ -41,7 +41,7 @@ impl From<serde_json::Error> for Error {
     fn from(error: serde_json::Error) -> Self {
         Error {
             error_type: ErrorType::JsonError,
-            message: error.description().to_string(),
+            message: error.to_string(),
         }
     }
 }
