@@ -50,10 +50,7 @@ impl Client {
         ).to_owned();
         match query.kind {
             Api::Public => {
-                match query.params {
-                    Some(params) => url.push_str(&params.to_query_params()),
-                    None => (),
-                }
+                match query.params.map_or((), |params| url.push_str(&params.to_query_params());
                 reqwest::get(&url)
             }
             Api::Private => {
@@ -99,31 +96,14 @@ impl Client {
         if api_result.success {
             return Ok(api_result.result.expect("Result should exist!"));
         }
-        match api_result.message {
-            Some(msg) => Err(Error {
-                error_type: ErrorType::APIError,
-                message: msg,
-            }),
-            None => Err(Error {
-                error_type: ErrorType::APIError,
-                message: "An error occured.".to_string(),
-            }),
-        }
+        Err(Error {error_type: ErrorType::APIError, message: api_result.message})
     }
 
     fn check_vec_response<T>(&self, api_result: APIVecResult<T>) -> Result<Vec<T>> {
         if api_result.success {
             return Ok(api_result.result.expect("Result should exist!"));
         }
-        match api_result.message {
-            Some(msg) => Err(Error {
-                error_type: ErrorType::APIError,
-                message: msg,
-            }),
-            None => Err(Error {
-                error_type: ErrorType::APIError,
-                message: "An error occured.".to_string(),
-            }),
+        Err(Error {error_type: ErrorType::APIError, message: api_result.message})
         }
     }
 
@@ -155,10 +135,7 @@ impl Client {
     /// market: The market name e.g. 'LTC_BTC' (required)
     /// count: The max amount of records to return (optional, default: 20)
     pub fn get_market_history(&self, market: String, count: Option<u32>) -> Result<Vec<Trade>> {
-        let count: u32 = match count {
-            Some(val) => val,
-            None => 20,
-        };
+        let count: u32 = count.unwrap_or(20);
         let mut resp = self.run(
             Query::new("getmarkethistory".to_string(), Api::Public)
                 .params(Params::new().market(market).count(count)),
@@ -198,14 +175,8 @@ impl Client {
         typeo: Option<String>,
         depth: Option<u32>,
     ) -> Result<PublicOrderBook> {
-        let typeo: String = match typeo {
-            Some(val) => val,
-            None => "both".to_string(),
-        };
-        let depth: u32 = match depth {
-            Some(val) => val,
-            None => 20,
-        };
+        let typeo: String = typeo.unwrap_or("both".to_string());
+        let depth: u32 = depth.unwrap_or(20);
         let mut resp = self.run(
             Query::new("getorderbook".to_string(), Api::Public)
                 .params(Params::new().market(market).typeo(typeo).depth(depth)),
@@ -255,14 +226,8 @@ impl Client {
     /// market: The market name e.g. 'LTC_BTC' (optional, default: 'all')
     /// count: The maximum count of records to return (optional, default: 20)
     pub fn get_orders(&self, market: Option<String>, count: Option<u32>) -> Result<Vec<Order>> {
-        let market: String = match market {
-            Some(val) => val,
-            None => "all".to_string(),
-        };
-        let count: u32 = match count {
-            Some(val) => val,
-            None => 20,
-        };
+        let market: String = market.unwrap_or("all".to_string());
+        let count: u32 = count.unwrap_or(20);
         let mut resp = self.run(
             Query::new("getorders".to_string(), Api::Private)
                 .params(Params::new().market(market).count(count)),
@@ -309,14 +274,8 @@ impl Client {
         market: Option<String>,
     ) -> Result<CancelOrder> {
         let mut params: Params = Params::new().typeo(typeo);
-        params = match market {
-            Some(market) => params.market(market),
-            None => params,
-        };
-        params = match orderid {
-            Some(orderid) => params.orderid(orderid),
-            None => params,
-        };
+        params = market.map_or(params,|market| params.market(market));
+        params = orderid.map_or(params, |orderid| params.orderid(orderid));
 
         let mut resp = self.run(Query::new("cancelorder".to_string(), Api::Private).params(params))
             .unwrap();
@@ -335,18 +294,9 @@ impl Client {
         count: Option<u32>,
         page_num: Option<u32>,
     ) -> Result<Vec<TradeHistory>> {
-        let market: String = match market {
-            Some(val) => val,
-            None => "all".to_string(),
-        };
-        let count: u32 = match count {
-            Some(val) => val,
-            None => 20,
-        };
-        let page_num: u32 = match page_num {
-            Some(val) => val,
-            None => 0,
-        };
+        let market: String = market.unwrap_or("all".to_string());
+        let count: u32 = count.unwrap_or(20);
+        let page_num: u32 = page_num.unwrap_or(0);
         let mut resp = self.run(
             Query::new("gettradehistory".to_string(), Api::Private)
                 .params(Params::new().market(market).count(count).page_num(page_num)),
@@ -394,14 +344,8 @@ impl Client {
         currency: Option<String>,
         count: Option<u32>,
     ) -> Result<Vec<Transaction>> {
-        let currency: String = match currency {
-            Some(val) => val,
-            None => "all".to_string(),
-        };
-        let count: u32 = match count {
-            Some(val) => val,
-            None => 20,
-        };
+        let currency: String = currency.unwrap_or("all".to_string());
+        let count: u32 = count.unwrap_or(20);
         let mut resp = self.run(
             Query::new("gettradehistory".to_string(), Api::Private)
                 .params(Params::new().currency(currency).count(count)),
@@ -419,14 +363,8 @@ impl Client {
         currency: Option<String>,
         count: Option<u32>,
     ) -> Result<Vec<Transaction>> {
-        let currency: String = match currency {
-            Some(val) => val,
-            None => "all".to_string(),
-        };
-        let count: u32 = match count {
-            Some(val) => val,
-            None => 20,
-        };
+        let currency: String = currency.unwrap_or("all".to_string());
+        let count: u32 = match count.unwrap_or(20);
         let mut resp = self.run(
             Query::new("gettradehistory".to_string(), Api::Private)
                 .params(Params::new().currency(currency).count(count)),
